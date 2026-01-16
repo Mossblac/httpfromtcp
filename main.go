@@ -1,38 +1,47 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
+	"strings"
 )
 
+const inputFilePath = "messages.txt"
+
 func main() {
-
-	file, err := os.Open("messages.txt")
+	f, err := os.Open(inputFilePath)
 	if err != nil {
-		fmt.Printf("error opening file: %v", err)
+		log.Fatalf("could not open %s: %s\n", inputFilePath, err)
 	}
+	defer f.Close()
 
-	defer file.Close()
+	fmt.Printf("Reading data from %s\n", inputFilePath)
+	fmt.Println("=====================================")
 
-	buffer := make([]byte, 8)
-	pickindex := 0
-
+	currentLineContents := ""
 	for {
-		bytesread, err := file.Read(buffer)
-
-		if bytesread > 0 {
-			chunk := buffer[:bytesread]
-			fmt.Printf("read: %s\n", string(chunk))
-			pickindex++
-		}
-
+		buffer := make([]byte, 8, 8)
+		n, err := f.Read(buffer)
 		if err != nil {
-			if err == io.EOF {
-				return
+			if currentLineContents != "" {
+				fmt.Printf("read: %s\n", currentLineContents)
+				currentLineContents = ""
 			}
-			fmt.Printf("error: %v", err)
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			fmt.Printf("error: %s\n", err.Error())
+			break
 		}
+		str := string(buffer[:n])
+		parts := strings.Split(str, "\n")
+		for i := 0; i < len(parts)-1; i++ {
+			fmt.Printf("read: %s%s\n", currentLineContents, parts[i])
+			currentLineContents = ""
+		}
+		currentLineContents += parts[len(parts)-1]
 	}
-
 }
