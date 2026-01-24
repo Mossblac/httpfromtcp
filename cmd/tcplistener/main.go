@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"httpfromtcp/internal/request"
 	"log"
 	"net"
 )
@@ -21,12 +22,24 @@ func main() {
 		} else {
 			fmt.Println("connection accepted")
 		}
-
-		ch := getLinesChannel(conn)
-
-		for line := range ch {
-			fmt.Printf("%s\n", line)
+		req, err := request.RequestFromReader(conn)
+		if err != nil {
+			fmt.Printf("error with parsing: %v", err)
 		}
+		template := `
+		Request line: 
+		- Method: %v
+		- Target: %v
+		- Version: %v
+		`
+		output := fmt.Sprintf(
+			template,
+			req.RequestLine.Method,
+			req.RequestLine.RequestTarget,
+			req.RequestLine.HttpVersion,
+		)
+		fmt.Print(output)
+
 		fmt.Println("connection has been closed")
 	}
 
