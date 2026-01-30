@@ -39,6 +39,10 @@ func main() {
 			req.RequestLine.HttpVersion,
 		)
 		fmt.Print(output)
+		fmt.Println("Headers:")
+		for key, value := range req.Headers {
+			fmt.Printf("- %s: %s\n", key, value)
+		}
 
 		fmt.Println("connection has been closed")
 	}
